@@ -1,0 +1,4 @@
+1) Build an easy to use graphing engine
+...
+2) Add in the main menu
+3) Code each topic
