@@ -1,20 +1,53 @@
+package Graphing;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GraphingGUI extends JPanel implements ActionListener, MouseListener, MouseMotionListener {
-    private final JFrame frame;
-    private final JTextField func_field;
-    private final JButton graph_btn, clear_btn;
+    private JFrame frame;
+    private JTextField func_field;
+    private JButton graph_btn;
+    private JButton clear_btn;
     private Graphics2D g2d;
     private final int width;
     private final int height;
     private String curr_func = null;
     private Point curr_click = null;
+
+    /*
+    x-values are the keys, y-values are the values
+    These key value pairs will dictate at what points things are drawn
+    If the space is empty, it will have the UNUSED_Y value
+     */
+    private final double UNUSED_Y = 10000;
+    private Map<Double, Double> grid;
+
+    /*
+    Stores the head to the linked list of each function
+    Maximum of 5 functions allowed
+     */
+    private Node[] func_heads = new Node[5];
+
     public GraphingGUI(int width, int height) {
+        initialize_components();
+
+        this.width = width;
+        this.height = height;
+
+        //initialize grid
+        grid = new HashMap<>();
+        for (double x = (double) -width/2; x < (double) width/2; x += 0.05) {
+            grid.put(cvt_to_gridspace(x, true), UNUSED_Y);
+        }
+
+    }
+
+    private void initialize_components() {
         frame = new JFrame();
         frame.setContentPane(this);
         frame.getContentPane().setPreferredSize(new Dimension(width, height));
@@ -25,6 +58,8 @@ public class GraphingGUI extends JPanel implements ActionListener, MouseListener
         frame.setLocationRelativeTo(null);
         frame.setBackground(new Color(0xADADAD));
         frame.setLayout(null);
+        frame.addMouseListener(this);
+        frame.addMouseMotionListener(this);
 
         func_field = new JTextField();
         func_field.setBounds(30, 30, 200, 30);
@@ -48,9 +83,6 @@ public class GraphingGUI extends JPanel implements ActionListener, MouseListener
         frame.add(func_field);
         frame.add(graph_btn);
         frame.add(clear_btn);
-
-        this.width = width;
-        this.height = height;
     }
 
     public JFrame get_frame() {
@@ -78,18 +110,30 @@ public class GraphingGUI extends JPanel implements ActionListener, MouseListener
         g2d.drawLine(0, height/2, width, height/2); //x-axis
         g2d.drawLine(width/2,  0, width/2, height); //y-axis
         //----------------------------------------------------------------
-        graph_function(curr_func);
-        graph_derivative(curr_click);
+
+        Node curr = get_points_from(curr_func);
+        if (curr == null) { return; }
+        Node prev_node = curr;
+        curr = curr.next;
+
+        g2d.setStroke(new BasicStroke(3));
+        g2d.setColor(new Color(0x4848C0));
+        while (curr.next != null) {
+            Line2D.Double line = new Line2D.Double(prev_node.x, prev_node.y, curr.x, curr.y);
+            g2d.draw(line);
+            prev_node = curr;
+            curr = curr.next;
+        }
     }
 
-    public void graph_function(String raw_func) {
-        if (raw_func == null || raw_func.trim().equals("")) { return; }
+    public Node get_points_from(String raw_func) {
+        if (raw_func == null || raw_func.trim().equals("")) { return null; }
         String func = raw_func.split("=")[1].trim();
 //        System.out.println(func);
 
-        g2d.setColor(new Color(0x4848C0));
-        Rectangle2D.Double prev_point = null;
-        for (double x = -(double) width/2; x < (double) width/2; x += 0.05) {
+        Node prev_node = null;
+        Node head = null;
+        for (double x = (double) -width/2; x < (double) width/2; x += 0.05) {
             String string_x = String.valueOf(x);
             if (String.valueOf(x).contains("E")) {
                 string_x = "0";
@@ -99,33 +143,32 @@ public class GraphingGUI extends JPanel implements ActionListener, MouseListener
 
             try {
                 double y = eval(expr); // if this throws, just return
-                double trans_x = cvt_to_gridspace(x);
-                double trans_y = -cvt_to_gridspace(y); // negative so the points go up as y increases
+                double trans_x = cvt_to_gridspace(x, true);
+                double trans_y = cvt_to_gridspace(y, false);
 
                 if (trans_x > width || trans_y > height) {
-                    System.out.println("Out of bounds!");
                     continue;
                 }
 
-                int rad = 3;
-                g2d.setStroke(new BasicStroke(rad));
-                Rectangle2D.Double point = new Rectangle2D.Double(trans_x, trans_y, rad, rad);
-                if (prev_point != null) {
-                    Line2D.Double line = new Line2D.Double(prev_point.x, prev_point.y, trans_x, trans_y);
-                    g2d.draw(line);
+                Node curr_node = new Node(null, trans_x, trans_y);
+                if (prev_node != null) {
+                    prev_node.next = curr_node;
+                } else {
+                    head = curr_node;
                 }
-
-                prev_point = point;
+                prev_node = curr_node;
             } catch (Error ignored) {
-                return;
+                return null;
             }
         }
+
+        return head;
     }
 
     public void graph_derivative(Point p) {
         if (p == null) { return; }
         try {
-            double x = cvt_to_gridspace(p.x);
+            double x = cvt_to_gridspace(p.x, true);
 
             if (curr_func == null || curr_func.trim().equals("")) { return; }
             String func = curr_func.split("=")[1].trim();
@@ -135,15 +178,24 @@ public class GraphingGUI extends JPanel implements ActionListener, MouseListener
             double dy = (y + 0.000001) - y;
             double dx = (x + 0.000001) - x;
             double m = dy/dx;
+            String d_func = String.format("%f (x - %f) + %f", m, x, y); // y - y1 = m (x - x1)
+            System.out.println("Derivative Function: " + d_func);
+            curr_func = d_func;
+            repaint();
+
         } catch (Error ignored) {}
     }
 
-    private double cvt_to_gridspace(double val) {
+    private double cvt_to_gridspace(double val, boolean isX) {
         // Convert from computer
         // to human coordinates
         // Multiply by 20 so it fits on 20x20 grid boxes
         // Shift right by half the screen because of how the original coordinate system works
-        return (val * 20) + ((double) width / 2);
+        if (isX) {
+            return (val * 20) + (double) width/2;
+        } else {
+            return -(val * 20) + (double) height/2;
+        }
     }
 
     @Override
@@ -248,7 +300,8 @@ public class GraphingGUI extends JPanel implements ActionListener, MouseListener
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        graph_derivative(e.getPoint());
+        System.out.println("Mouse clicked");
+        curr_click = e.getPoint();
         repaint();
     }
 
@@ -279,6 +332,6 @@ public class GraphingGUI extends JPanel implements ActionListener, MouseListener
 
     @Override
     public void mouseMoved(MouseEvent e) {
-
+        System.out.println("laskdfjladskfj");
     }
 }

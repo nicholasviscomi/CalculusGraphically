@@ -2,3 +2,15 @@
 ...
 2) Add in the main menu
 3) Code each topic
+
+Within the graphing file:
+    Have a giant map where the keys are all the x values from -width/2 up to width/2 in increment of 0.05
+    This is the increment used when finding the y-values for the function. Then when you graph a function,
+    just go through the map and put the y-value as the value for the x-value key (points[x-value] = y-value)
+        Doesn't work because it will connect points incorrectly (granted that you just connect the current
+        point to the previous one)
+
+    Maybe just have a linked list for each function that gets drawn. You calculate the points and it returns
+    the start node that can then be traversed forwards. This should also help make animation easier. To store
+    and draw multiple functions, keep an array of Head Nodes. In the drawing function, just go through every
+    head node (aka function) and draw it!
