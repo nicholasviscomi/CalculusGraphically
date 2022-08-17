@@ -119,56 +119,51 @@ public class GraphingGUI extends JPanel implements ActionListener {
             curr = curr.next;
         }
 
+        g2d.setColor(new Color(0x5B5B5B));
+        g2d.setStroke(new BasicStroke(3));
+
         //draw dot on function at the x-value of mouse click
-        g2d.setColor(new Color(0xFF0000));
         if (mouse_on_screen && curr_mouse != null && !Objects.equals(curr_func, "")) {
-            double x = curr_mouse.x;
-            // MOST IMPORTANT LINE: converts coordinate out of grid space
-            x = (x - ((double) width/2)) / 20;
-            if (curr_func != null && !curr_func.trim().equals("")) {
-                String func = curr_func.split("=")[1].trim();
-                String expr = func.replaceAll("x", String.valueOf(x));
-                try {
-                    double y = eval(expr);
-                    y = cvt_to_gridspace(y, false);
-                    x = cvt_to_gridspace(x, true);
-
-                    g2d.fillOval((int) (x - 5), (int) (y - 5), 10, 10);
-
-                    //calculate and graph derivative
-                    x = revert_from_gridspace(x, true);
-                    double dx = (x + 0.0001) - x;
-                    System.out.println("dx: " + dx);
-
-                    expr = func.replaceAll("x", String.valueOf(x + 0.0001));
-                    y = revert_from_gridspace(y, false);
-                    double dy = eval(expr) - y;
-                    System.out.println("dy: " + dy);
-
-                    double m = dy/dx;
-                    String d_func = String.format("%f * (x - %f) + %f", m, x, y); // y - y1 = m (x - x1)
-                    System.out.println("Derivative Function: " + d_func);
-
-                    //find two points on the line of the derivative so it can be drawn
-                    double a_x = x - 3;
-                    double a_y = eval(d_func.replaceAll("x", String.valueOf(a_x)));
-                    a_x = cvt_to_gridspace(a_x, true);
-                    a_y = cvt_to_gridspace(a_y, false);
-
-                    double b_x = x + 3;
-                    double b_y = eval(d_func.replaceAll("x", String.valueOf(b_x)));
-                    b_x = cvt_to_gridspace(b_x, true);
-                    b_y = cvt_to_gridspace(b_y, false);
-
-                    Line2D.Double line = new Line2D.Double(a_x, a_y, b_x, b_y);
-                    g2d.draw(line);
-                } catch (Error ignored) {}
-            }
+            System.out.println("Attempting to draw b/t points");
+            line_bt_points(curr_mouse.x, curr_mouse.x + 0.0001);
         }
     }
 
     public void line_bt_points(double x1, double x2) {
+        if (curr_func == null || curr_func.trim().equals("")) {
+            System.out.println("Exit");
+            return;
+        }
+        x1 = revert_from_gridspace(x1, true); x2 = revert_from_gridspace(x2, true);
 
+        String func = curr_func.split("=")[1].trim();
+        String expr = func.replaceAll("x", String.valueOf(x1));
+        double y1 = eval(expr);
+
+        expr = func.replaceAll("x", String.valueOf(x2));
+        double y2 = eval(expr);
+
+        double dx = x2 - x1, dy = y2 - y1;
+        double m = dy/dx;
+        String d_func = String.format("%f * (x - %f) + %f", m, x1, y1); // y - y1 = m (x - x1)
+
+        double a_x = x1 > x2 ? x2 - 3 : x1 - 3; // 3 less than point farthest left
+        double a_y = eval(d_func.replaceAll("x", String.valueOf(a_x)));
+        a_x = cvt_to_gridspace(a_x, true);
+        a_y = cvt_to_gridspace(a_y, false);
+
+        double b_x = x1 > x2 ? x1 + 3 : x2 + 3;
+        double b_y = eval(d_func.replaceAll("x", String.valueOf(b_x)));
+        b_x = cvt_to_gridspace(b_x, true);
+        b_y = cvt_to_gridspace(b_y, false);
+
+        Line2D.Double line = new Line2D.Double(a_x, a_y, b_x, b_y);
+        g2d.draw(line);
+
+        x1 = cvt_to_gridspace(x1, true); y1 = cvt_to_gridspace(y1, false);
+        x2 = cvt_to_gridspace(x2, true); y2 = cvt_to_gridspace(y2, false);
+        g2d.fillOval((int) (x1 - 5), (int) (y1 - 5), 10, 10);
+        g2d.fillOval((int) (x2 - 5), (int) (y2 - 5), 10, 10);
     }
 
     public Node get_points_from(String raw_func) {
