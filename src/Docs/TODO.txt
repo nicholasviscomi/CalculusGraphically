@@ -1,4 +1,4 @@
-[ ] make a function that draws a line between two x values
+[x] make a function that draws a line between two x values
     --> can be used to graph the derivative and animate the limit definition of a derivative
 [ ] make the code more modular such that you can graph multiple things at once
 [ ] graph derivative when the mouse is clicked

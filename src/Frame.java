@@ -77,6 +77,8 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
     @Override
     public void mouseMoved(MouseEvent e) {
         graphing_gui.curr_mouse = e.getPoint();
-        graphing_gui.repaint();
+        if (graphing_gui.show_derivative) {
+            graphing_gui.repaint();
+        }
     }
 }
