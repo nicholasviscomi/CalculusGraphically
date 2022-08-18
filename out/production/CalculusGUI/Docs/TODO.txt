@@ -1,5 +1,7 @@
 [x] make a function that draws a line between two x values
     --> can be used to graph the derivative and animate the limit definition of a derivative
+[ ] Make a function that loops through an array of values and creates labels for them
+    --> should make it easier to display slope, area, width, etc.
 [ ] make the code more modular such that you can graph multiple things at once
 [ ] graph derivative when the mouse is clicked
 [ ] add a history of previously graphed stuff

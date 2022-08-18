@@ -14,6 +14,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     private JButton graph_btn, clear_btn, solve_integral_btn;
     private JCheckBox show_deriv_box;
     private JLabel slope_label;
+    private JSlider rect_w_slider;
     private Graphics2D g2d;
     private final int width;
     private final int height;
@@ -23,6 +24,9 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     public Point curr_click = null, curr_mouse = null;
     public boolean mouse_on_screen, show_derivative;
 
+    public double rect_width = 5;
+
+    public boolean show_integral = false;
     /*
     Stores the head to the linked list of each function/derivative
     Maximum of 5 functions allowed
@@ -33,7 +37,8 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     // and lower bounds until they are very close together.
     private Timer limit_def_timer;
     private final double BOUND_VAL = 60;
-    private double l_bound = BOUND_VAL, u_bound = BOUND_VAL;
+    private double deriv_l_bound = BOUND_VAL, deriv_u_bound = BOUND_VAL;
+    private double integ_l_bound = 0, integ_u_bound = 0;
     public GraphingGUI(int width, int height) {
         initialize_components();
 
@@ -123,6 +128,22 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         );
         ub_field.setVisible(true);
 
+        rect_w_slider = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
+        rect_w_slider.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
+        rect_w_slider.setMinorTickSpacing(1);
+        rect_w_slider.setMajorTickSpacing(5);
+        rect_w_slider.setPaintLabels(true);
+        rect_w_slider.setPaintTicks(true);
+        rect_w_slider.setOpaque(true);
+        rect_w_slider.setBackground(new Color(0xFFFFFF));
+        d = rect_w_slider.getPreferredSize();
+        rect_w_slider.setBounds(
+                lb_field.getX(), lb_field.getY() + lb_field.getHeight() + 5,
+                (ub_field.getX() + ub_field.getWidth()) - lb_field.getX(), d.height
+        );
+        rect_w_slider.addChangeListener(this);
+        rect_w_slider.setVisible(true);
+
         solve_integral_btn = new JButton();
         solve_integral_btn.setText("Solve Integral");
         solve_integral_btn.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
@@ -142,6 +163,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         frame.add(lb_field);
         frame.add(ub_field);
         frame.add(solve_integral_btn);
+        frame.add(rect_w_slider);
 
         limit_def_timer = new Timer(3, this);
         show_derivative = false;
@@ -191,21 +213,47 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         g2d.setColor(new Color(0x5B5B5B));
         g2d.setStroke(new BasicStroke(3));
 
-        if (mouse_on_screen && !Objects.equals(curr_func, "")) {
+        if (!Objects.equals(curr_func, "")) {
             if (curr_mouse != null && show_derivative) {
                 //graph derivative
                 line_bt_points(curr_mouse.x, curr_mouse.x + 0.0001);
-            }
-            if (curr_click != null && !show_derivative) {
+            } else if (curr_click != null && !show_derivative) {
                 if (!limit_def_timer.isRunning()) {
                     limit_def_timer.start();
                 }
-                line_bt_points(curr_click.x - l_bound, curr_click.x + u_bound);
+                line_bt_points(curr_click.x - deriv_l_bound, curr_click.x + deriv_u_bound);
+            } else if (show_integral) {
+                approx_integral(integ_l_bound, integ_u_bound, rect_width);
             }
         }
 
     }
 
+    /*
+    @params lb = lower bound x-value, ub = upper bound, w = width of rectangles
+     */
+    public void approx_integral(double lb, double ub, double w) {
+        if (curr_func == null || curr_func.trim().equals("")) {
+            System.out.println("Exit");
+            return;
+        }
+        lb = cvt_to_gridspace(lb, true);
+        ub = cvt_to_gridspace(ub, true);
+
+        g2d.setColor(new Color(0x9B4D47DC, true));
+        String func = curr_func.split("=")[1].trim();
+        for (double x = lb; x + w <= ub; x += w) {
+            String expr = func.replaceAll("x", String.valueOf(revert_from_gridspace(x, true)));
+            double height = eval(expr); // rectangle goes from x-axis to function
+
+            Rectangle2D.Double rect = new Rectangle2D.Double(
+                    x, cvt_to_gridspace(0, false) - (height * 20),
+                    w, height * 20
+            );
+
+            g2d.fill(rect);
+        }
+    }
     public void line_bt_points(double x1, double x2) {
         if (curr_func == null || curr_func.trim().equals("")) {
             System.out.println("Exit");
@@ -319,22 +367,35 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             curr_func = "";
             func_field.setText("");
             slope_label.setText("");
+
+            show_integral = false;
+            lb_field.setText("Lower Bound: ");
+            ub_field.setText("Lower Bound: ");
             repaint();
         }
 
         if (e.getSource() == solve_integral_btn) {
             System.out.println("Solving integral from " + lb_field.getText() + " to " + ub_field.getText());
+
+            integ_l_bound = Double.parseDouble(lb_field.getText().split(":")[1].trim());
+            integ_u_bound = Double.parseDouble(ub_field.getText().split(":")[1].trim());
+
+            show_integral = true;
+            show_derivative = false;
+            show_deriv_box.setSelected(false);
+            curr_click = null; //ensures the limit definition of derivative box doesn't trigger
+            repaint();
         }
 
         if (e.getSource() == limit_def_timer) {
-            if (u_bound > 0.1 && l_bound > 0.1) {
-                u_bound -= 0.1;
-                l_bound -= 0.1;
+            if (deriv_u_bound > 0.1 && deriv_l_bound > 0.1) {
+                deriv_u_bound -= 0.1;
+                deriv_l_bound -= 0.1;
                 repaint();
             } else {
                 limit_def_timer.stop();
-                u_bound = BOUND_VAL;
-                l_bound = BOUND_VAL;
+                deriv_u_bound = BOUND_VAL;
+                deriv_l_bound = BOUND_VAL;
             }
         }
     }
@@ -439,7 +500,14 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     public void stateChanged(ChangeEvent e) {
         if (e.getSource() == show_deriv_box) {
             show_derivative = show_deriv_box.isSelected();
+            if (show_derivative) show_integral = false;
             slope_label.setText("Slope: ");
+            repaint();
+        }
+
+        if (e.getSource() == rect_w_slider) {
+            rect_width = rect_w_slider.getValue();
+            if (rect_width == 0) rect_width = 0.5;
             repaint();
         }
     }
