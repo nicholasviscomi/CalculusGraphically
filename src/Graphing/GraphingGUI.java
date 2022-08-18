@@ -300,7 +300,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
                 if (!limit_def_timer.isRunning()) {
                     limit_def_timer.start();
                 }
-                line_bt_points(curr_click.x - deriv_l_bound, curr_click.x + deriv_u_bound);
+                line_bt_points(curr_click.x, curr_click.x + deriv_u_bound);
             } else if (show_integral) {
                 approx_integral(integ_l_bound, integ_u_bound, rect_width);
             }
