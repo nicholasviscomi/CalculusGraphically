@@ -245,10 +245,18 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         for (double x = lb; x + w <= ub; x += w) {
             String expr = func.replaceAll("x", String.valueOf(revert_from_gridspace(x, true)));
             double height = eval(expr); // rectangle goes from x-axis to function
+            System.out.println("height = " + height);
+
+            double offset = height * 20, factor = 1;
+            if (height < 0) {
+                //below x-axis case
+                offset = 0;
+                factor = -1; //used to turn the height positive (can't have height <0)
+            }
 
             Rectangle2D.Double rect = new Rectangle2D.Double(
-                    x, cvt_to_gridspace(0, false) - (height * 20),
-                    w, height * 20
+                    x, cvt_to_gridspace(0, false) - offset,
+                    w, height * 20 * factor
             );
 
             g2d.fill(rect);
