@@ -7,12 +7,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.Objects;
+import java.util.Random;
 
 public class GraphingGUI extends JPanel implements ActionListener, ChangeListener {
     private JFrame frame;
     private JTextField func_field, lb_field, ub_field; // lb = lower bound, ub = upper bound
-    private JButton graph_btn, clear_btn, solve_integral_btn;
-    private JCheckBox show_deriv_box;
+    private JButton graph_btn, clear_btn, approx_integral_btn;
+    private JCheckBox show_tang_box, show_deriv_box; //show tangent line
     private JLabel slope_label;
     private JSlider rect_w_slider;
     private Graphics2D g2d;
@@ -22,11 +23,11 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 
     //these will be changed by Frame.java during mouse events
     public Point curr_click = null, curr_mouse = null;
-    public boolean mouse_on_screen, show_derivative;
+    public boolean mouse_on_screen, show_tangent;
 
     public double rect_width = 5;
 
-    public boolean show_integral = false;
+    public boolean show_integral = false, show_derivative = false;
     /*
     Stores the head to the linked list of each function/derivative
     Maximum of 5 functions allowed
@@ -36,9 +37,12 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     // Timer that gradually decreases the distance between the upper
     // and lower bounds until they are very close together.
     private Timer limit_def_timer;
-    private final double BOUND_VAL = 60;
+    private final double BOUND_VAL = 45;
     private double deriv_l_bound = BOUND_VAL, deriv_u_bound = BOUND_VAL;
     private double integ_l_bound = 0, integ_u_bound = 0;
+    private Color[] colors = new Color[] {
+            Color.BLUE, Color.RED, Color.ORANGE
+    };
     public GraphingGUI(int width, int height) {
         initialize_components();
 
@@ -88,33 +92,45 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         clear_btn.addActionListener(this);
         clear_btn.setVisible(true);
 
-        show_deriv_box = new JCheckBox("Show Derivative");
-        show_deriv_box.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        d = show_deriv_box.getPreferredSize();
-        show_deriv_box.setBounds(
+        show_tang_box = new JCheckBox("Show Tangent");
+        show_tang_box.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
+        d = show_tang_box.getPreferredSize();
+        show_tang_box.setBounds(
                 func_field.getX(), func_field.getY() + func_field.getHeight(),
                 d.width, d.height
         );
-        show_deriv_box.setOpaque(true);
-        show_deriv_box.setBackground(new Color(0xFFFFFF));
-        show_deriv_box.addChangeListener(this);
-        show_deriv_box.setVisible(true);
+        show_tang_box.setOpaque(true);
+        show_tang_box.setBackground(new Color(0xFFFFFF));
+        show_tang_box.addChangeListener(this);
+        show_tang_box.setVisible(true);
 
         slope_label = new JLabel("Slope: ");
         slope_label.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
         slope_label.setBounds(
-                show_deriv_box.getX() + show_deriv_box.getWidth() + 10, show_deriv_box.getY(),
-                100, show_deriv_box.getHeight()
+                show_tang_box.getX() + show_tang_box.getWidth() + 10, show_tang_box.getY(),
+                100, show_tang_box.getHeight()
         );
         slope_label.setOpaque(true);
         slope_label.setBackground(new Color(0xFFFFFF));
         slope_label.setVisible(true);
 
+        show_deriv_box = new JCheckBox("Show Derivative");
+        show_deriv_box.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
+        d = show_deriv_box.getPreferredSize();
+        show_deriv_box.setBounds(
+                slope_label.getX() + slope_label.getWidth() + 5, slope_label.getY(),
+                d.width, slope_label.getHeight()
+        );
+        show_deriv_box.addChangeListener(this);
+        show_deriv_box.setOpaque(true);
+        show_deriv_box.setBackground(new Color(0xFFFFFF));
+        show_deriv_box.setVisible(true);
+
         lb_field = new JTextField("Lower Bound:");
         lb_field.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
         d = lb_field.getPreferredSize();
         lb_field.setBounds(
-                func_field.getX(), show_deriv_box.getY() + show_deriv_box.getHeight() + 5,
+                func_field.getX(), show_tang_box.getY() + show_tang_box.getHeight() + 5,
                 120, d.height
         );
         lb_field.setVisible(true);
@@ -144,29 +160,34 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         rect_w_slider.addChangeListener(this);
         rect_w_slider.setVisible(true);
 
-        solve_integral_btn = new JButton();
-        solve_integral_btn.setText("Solve Integral");
-        solve_integral_btn.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        d = solve_integral_btn.getPreferredSize();
-        solve_integral_btn.setBounds(
+        approx_integral_btn = new JButton();
+        approx_integral_btn.setText("Approximate Integral");
+        approx_integral_btn.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
+        d = approx_integral_btn.getPreferredSize();
+        approx_integral_btn.setBounds(
                 ub_field.getX() + ub_field.getWidth() + 5,
                 ub_field.getY(), d.width, ub_field.getHeight()
         );
-        solve_integral_btn.addActionListener(this);
-        solve_integral_btn.setVisible(true);
+        approx_integral_btn.addActionListener(this);
+        approx_integral_btn.setVisible(true);
 
         frame.add(func_field);
         frame.add(graph_btn);
         frame.add(clear_btn);
-        frame.add(show_deriv_box);
+        frame.add(show_tang_box);
         frame.add(slope_label);
         frame.add(lb_field);
         frame.add(ub_field);
-        frame.add(solve_integral_btn);
+        frame.add(approx_integral_btn);
         frame.add(rect_w_slider);
+        frame.add(show_deriv_box);
 
         limit_def_timer = new Timer(3, this);
-        show_derivative = false;
+        show_tangent = false;
+
+        func_heads = new Node[] {
+                null, null, null, null, null
+        };
     }
 
     public JFrame get_frame() {
@@ -178,15 +199,54 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         super.paintComponent(g);
         //Draw grid
         g2d = (Graphics2D) g;
-        g2d.setColor(new Color(0xC34F4F4F, true));
+        g2d.setColor(new Color(0x7E4F4F4F, true));
         g2d.setStroke(new BasicStroke(1));
 
+        //horiz lines
         for (int y = 0; y < height; y += 20) {
             g2d.drawLine(0, y, width, y);
         }
-
+        //vert lines
         for (int x = 0; x < width; x += 20) {
             g2d.drawLine(x, 0, x, height);
+        }
+
+        g2d.setColor(new Color(0xFF000000, true));
+        //y-axis labels
+        int label = height / 20 / 2;
+        int offset;
+        for (int y = 0; y < height; y += 20) {
+            if (label == 0) {
+                label--;
+                continue;
+            }
+            if (label > 0) {
+                offset = 5;
+            } else {
+                offset = 0;
+            }
+            if (label % 2 == 0) {
+                g.drawString(String.valueOf(label), width / 2 + 2 + offset, y + 5);
+            }
+            label--;
+        }
+
+        //x-axis labels
+        label = -(width / 20) / 2;
+        for (int x = 0; x < width; x += 20) {
+            if (label == 0) {
+                label++;
+                continue;
+            }
+            if (label < 0) {
+                offset = 12;
+            } else {
+                offset = 8;
+            }
+            if (label % 2 == 0) {
+                g.drawString(String.valueOf(label), x - offset, height/2 + 14);
+            }
+            label++;
         }
 
         g2d.setColor(new Color(0,0,0));
@@ -195,29 +255,48 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         g2d.drawLine(width/2,  0, width/2, height); //y-axis
         //----------------------------------------------------------------
 
-        //draw the function
-        Node curr = get_points_from(curr_func);
-        if (curr == null) { return; }
-        Node prev_node = curr;
-        curr = curr.next;
+        //draw the functions
+        for (int i = 0; i < func_heads.length; i++) {
+            Node curr = func_heads[i];
+            Color color = colors[i];
 
-        g2d.setStroke(new BasicStroke(4));
-        g2d.setColor(new Color(0x4848C0));
-        while (curr.next != null) {
-            Line2D.Double line = new Line2D.Double(prev_node.x, prev_node.y, curr.x, curr.y);
-            g2d.draw(line);
-            prev_node = curr;
+            if (curr == null) { break; }
+            Node prev_node = curr;
             curr = curr.next;
+
+            g2d.setStroke(new BasicStroke(4));
+            g2d.setColor(color);
+            while (curr.next != null) {
+                Line2D.Double line = new Line2D.Double(prev_node.x, prev_node.y, curr.x, curr.y);
+                g2d.draw(line);
+                prev_node = curr;
+                curr = curr.next;
+            }
         }
 
         g2d.setColor(new Color(0x5B5B5B));
         g2d.setStroke(new BasicStroke(3));
 
+        System.out.print("GraphingGUI.paintComponent:");
+        System.out.println("curr_func = " + curr_func);
         if (!Objects.equals(curr_func, "")) {
-            if (curr_mouse != null && show_derivative) {
+            if (curr_mouse != null && show_tangent) {
                 //graph derivative
                 line_bt_points(curr_mouse.x, curr_mouse.x + 0.0001);
-            } else if (curr_click != null && !show_derivative) {
+                if (show_derivative) {
+                    //plot a circle on the deriv graph
+//                    String expr = curr_func.split("=")[1].trim()
+//                            .replaceAll("x", String.valueOf(revert_from_gridspace(curr_mouse.x, true)));
+//                    double y = eval(expr);
+//                    System.out.println("expr = " + expr);
+//                    System.out.println("y = " + y);
+//                    g2d.fillOval(curr_mouse.x - 5, (int) (cvt_to_gridspace(y, false) - 5), 10, 10);
+                    double y = Double.parseDouble(slope_label.getText().split(":")[1]);
+                    int rad = 10;
+                    g2d.fillOval(curr_mouse.x - rad/2, (int) (cvt_to_gridspace(y, false) - rad/2), rad, rad);
+                }
+            } else if (curr_click != null && !show_tangent) {
+                //animate limit definition of derivative
                 if (!limit_def_timer.isRunning()) {
                     limit_def_timer.start();
                 }
@@ -278,7 +357,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 
         double dx = x2 - x1, dy = y2 - y1;
         double m = dy/dx;
-        System.out.println("m:" + m);
         String d_func = String.format("%f * (x - %f) + %f", m, x1, y1); // y - y1 = m (x - x1)
 
         double a_x = x1 > x2 ? x2 - 3 : x1 - 3; // 3 less than point farthest left
@@ -304,13 +382,13 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         }
     }
 
-    public Node get_points_from(String raw_func) {
+    public Node[] get_points_from(String raw_func, boolean get_deriv) {
         if (raw_func == null || raw_func.trim().equals("")) { return null; }
         String func = raw_func.split("=")[1].trim();
 //        System.out.println(func);
 
-        Node prev_node = null;
-        Node head = null;
+        Node prev_func_node = null, prev_deriv_node = null;;
+        Node func_head = null, deriv_head = null;
         for (double x = (double) -width/2; x < (double) width/2; x += 0.1) {
             String string_x = String.valueOf(x);
             if (String.valueOf(x).contains("E")) {
@@ -328,19 +406,36 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
                     continue;
                 }
 
-                Node curr_node = new Node(null, trans_x, trans_y);
-                if (prev_node != null) {
-                    prev_node.next = curr_node;
+                Node curr_func_node = new Node(null, trans_x, trans_y); //current node of the original function
+                if (prev_func_node != null) {
+                    prev_func_node.next = curr_func_node; //make the previous point towards the current
                 } else {
-                    head = curr_node;
+                    func_head = curr_func_node; //saves the beginning of the list as the head so it can be returned
                 }
-                prev_node = curr_node;
+
+                if (get_deriv) {
+                    if (prev_func_node == null) { prev_func_node = curr_func_node; continue; }
+
+                    double dy = trans_y - prev_func_node.y;
+                    double dx = trans_x - prev_func_node.x;
+                    double m = dy/dx;
+                    Node curr_deriv_node = new Node(null, trans_x, (m * 20) + ((double) height/2)); // m needs to be stretched and shifted down to fit on the grid
+
+                    if (prev_deriv_node != null) {
+                        prev_deriv_node.next = curr_deriv_node;
+                    } else {
+                        deriv_head = curr_deriv_node;
+                    }
+                    prev_deriv_node = curr_deriv_node;
+                }
+
+                prev_func_node = curr_func_node;
             } catch (Error ignored) {
                 return null;
             }
         }
 
-        return head;
+        return new Node[] { func_head, deriv_head };
     }
 
     private double cvt_to_gridspace(double val, boolean isX) {
@@ -368,6 +463,11 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == graph_btn) {
             curr_func = func_field.getText();
+            Node[] heads = get_points_from(curr_func, show_derivative);
+            func_heads[0] = heads[0];
+            if (show_derivative && heads.length > 1) {
+                func_heads[1] = heads[1];
+            }
             repaint();
         }
 
@@ -376,21 +476,32 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             func_field.setText("");
             slope_label.setText("");
 
+            func_heads = new Node[] { null, null, null, null, null };
+
+            show_derivative = false;
+            show_deriv_box.setSelected(false);
+
+            show_tang_box.setSelected(false);
+            curr_click = null;
+
             show_integral = false;
             lb_field.setText("Lower Bound: ");
             ub_field.setText("Lower Bound: ");
             repaint();
         }
 
-        if (e.getSource() == solve_integral_btn) {
-            System.out.println("Solving integral from " + lb_field.getText() + " to " + ub_field.getText());
-
+        if (e.getSource() == approx_integral_btn) {
             integ_l_bound = Double.parseDouble(lb_field.getText().split(":")[1].trim());
             integ_u_bound = Double.parseDouble(ub_field.getText().split(":")[1].trim());
 
             show_integral = true;
+            show_tangent = false;
+
             show_derivative = false;
             show_deriv_box.setSelected(false);
+            func_heads[1] = null; //remove derivative
+
+            show_tang_box.setSelected(false);
             curr_click = null; //ensures the limit definition of derivative box doesn't trigger
             repaint();
         }
@@ -405,6 +516,42 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
                 deriv_u_bound = BOUND_VAL;
                 deriv_l_bound = BOUND_VAL;
             }
+        }
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        if (e.getSource() == show_tang_box) {
+            show_tangent = show_tang_box.isSelected();
+            curr_func = func_field.getText();
+            if (show_tangent) {
+                show_integral = false;
+            }
+
+            slope_label.setText("Slope: ");
+            repaint();
+        }
+
+        if (e.getSource() == rect_w_slider) {
+            rect_width = rect_w_slider.getValue();
+            if (rect_width == 0) rect_width = 0.5;
+            repaint();
+        }
+
+        if (e.getSource() == show_deriv_box) {
+            show_derivative = show_deriv_box.isSelected();
+            if (show_derivative) {
+                show_integral = false;
+                curr_func = func_field.getText();
+                Node[] heads = get_points_from(curr_func, show_derivative);
+                func_heads[0] = heads[0];
+                if (show_derivative && heads.length > 1) {
+                    func_heads[1] = heads[1];
+                }
+            } else {
+                func_heads[1] = null;
+            }
+            repaint();
         }
     }
 
@@ -504,19 +651,4 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         paint(g);
     }
 
-    @Override
-    public void stateChanged(ChangeEvent e) {
-        if (e.getSource() == show_deriv_box) {
-            show_derivative = show_deriv_box.isSelected();
-            if (show_derivative) show_integral = false;
-            slope_label.setText("Slope: ");
-            repaint();
-        }
-
-        if (e.getSource() == rect_w_slider) {
-            rect_width = rect_w_slider.getValue();
-            if (rect_width == 0) rect_width = 0.5;
-            repaint();
-        }
-    }
 }
