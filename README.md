@@ -19,3 +19,14 @@ Built with my knowledge of  and for HL Math A&A Y1 HL. It will not necessarily b
 - See tangent line at any point and the slope. Size of tangent line changes with magnitude of slope
 - Animation of the limit definition of a derivative
 - Interact with a rectangle approximation of an integral from specified bounds
+
+### Download & Run
+No special libraries were used. Clone/download the repository and run it.  
+You must have java downloaded on your device, although I am unsure what version you must have. I am on "17.0.3.1" if that helps
+
+To check if you have java downloaded, run `java -version`  
+It should return something like this:  
+`java version "17.0.3.1" 2022-04-22 LTS
+Java(TM) SE Runtime Environment (build 17.0.3.1+2-LTS-6)
+Java HotSpot(TM) 64-Bit Server VM (build 17.0.3.1+2-LTS-6, mixed mode, sharing)`
+

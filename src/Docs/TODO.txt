@@ -3,9 +3,13 @@
 [x] ensure the integral thing works everywhere
     --> I don't think it will work below and above the x-axis in one go
 [x] if the user has show_tangent && show_derivative, have a circle track on the derivative graph when the mouse moves
+[x] make the code more modular such that you can graph multiple things at once
+[x] graph derivative when the mouse is clicked
+
+[ ] Make the Sections expandable and collapsable
+[ ] Design differentiation section
+[ ] Design integration section
+[ ] Design transformations section
+
 [ ] Make asymptotes work
-[ ] Make a function that loops through an array of values and creates labels for them
-    --> should make it easier to display slope, area, width, etc.
-[ ] make the code more modular such that you can graph multiple things at once
-[ ] graph derivative when the mouse is clicked
 [ ] add a history of previously graphed stuff

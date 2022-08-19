@@ -6,6 +6,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.awt.image.BufferedImage;
 import java.util.Objects;
 
 public class GraphingGUI extends JPanel implements ActionListener, ChangeListener {
@@ -42,6 +43,8 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     private final Color[] colors = new Color[] {
             Color.BLUE, Color.RED, Color.ORANGE
     };
+
+    private Section diff_section, integ_section, transf_section;
 
     public GraphingGUI(int width, int height) {
         initialize_components();
@@ -126,7 +129,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         show_deriv_box.setBackground(new Color(0xFFFFFF));
         show_deriv_box.setVisible(true);
 
-        lb_field = new JTextField("Lower Bound:");
+        lb_field = new JTextField("Lower Bound: 0");
         lb_field.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
         d = lb_field.getPreferredSize();
         lb_field.setBounds(
@@ -135,7 +138,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         );
         lb_field.setVisible(true);
 
-        ub_field = new JTextField("Upper Bound:");
+        ub_field = new JTextField("Upper Bound: 6.28");
         ub_field.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
         d = lb_field.getPreferredSize();
         ub_field.setBounds(
@@ -181,6 +184,10 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         area_label.setBackground(new Color(0xFFFFFF));
         area_label.setVisible(true);
 
+        diff_section = new Section(new Color(0xFFFFFF), 400, 300, 200, 100, "Differentiation");
+        integ_section = new Section(new Color(0xFFFFFF), 400, 410, 200, 100, "Integration");
+        transf_section = new Section(new Color(0xFFFFFF), 400, 520, 200, 100, "Transformations");
+
         frame.add(func_field);
         frame.add(graph_btn);
         frame.add(clear_btn);
@@ -192,6 +199,9 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         frame.add(rect_w_slider);
         frame.add(show_deriv_box);
         frame.add(area_label);
+        frame.add(diff_section);
+        frame.add(integ_section);
+        frame.add(transf_section);
 
         limit_def_timer = new Timer(3, this);
         show_tangent = false;
@@ -265,6 +275,16 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         g2d.drawLine(0, height/2, width, height/2); //x-axis
         g2d.drawLine(width/2,  0, width/2, height); //y-axis
         //----------------------------------------------------------------
+
+        Image integral_img = Toolkit.getDefaultToolkit().getImage("src/Assets/Integral.png");
+        g2d.setColor(new Color(0xFFFFFF));
+        g2d.fillRect(width/2 + 35, 25, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3 + 10);
+        g2d.drawImage(integral_img, width/2 + 40, 30, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3, this);
+
+        Image lim_def_img = Toolkit.getDefaultToolkit().getImage("src/Assets/limit_def_deriv.png");
+        g2d.setColor(new Color(0xFFFFFF));
+        g2d.fillRect(width/2 + 205, 25, lim_def_img.getWidth(this)/6, lim_def_img.getHeight(this)/6);
+        g2d.drawImage(lim_def_img, width/2 + 200, 30, lim_def_img.getWidth(this)/6, lim_def_img.getHeight(this)/6, this);
 
         //draw the functions
         for (int i = 0; i < func_heads.length; i++) {
