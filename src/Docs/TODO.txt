@@ -2,7 +2,8 @@
     --> can be used to graph the derivative and animate the limit definition of a derivative
 [x] ensure the integral thing works everywhere
     --> I don't think it will work below and above the x-axis in one go
-[ ] if the user has show_tangent && show_derivative, have a circle track on the derivative graph when the mouse moves
+[x] if the user has show_tangent && show_derivative, have a circle track on the derivative graph when the mouse moves
+[ ] Make asymptotes work
 [ ] Make a function that loops through an array of values and creates labels for them
     --> should make it easier to display slope, area, width, etc.
 [ ] make the code more modular such that you can graph multiple things at once

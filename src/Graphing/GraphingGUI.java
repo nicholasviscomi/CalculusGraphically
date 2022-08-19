@@ -7,14 +7,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.Objects;
-import java.util.Random;
 
 public class GraphingGUI extends JPanel implements ActionListener, ChangeListener {
     private JFrame frame;
     private JTextField func_field, lb_field, ub_field; // lb = lower bound, ub = upper bound
     private JButton graph_btn, clear_btn, approx_integral_btn;
     private JCheckBox show_tang_box, show_deriv_box; //show tangent line
-    private JLabel slope_label;
+    private JLabel slope_label, area_label;
     private JSlider rect_w_slider;
     private Graphics2D g2d;
     private final int width;
@@ -40,9 +39,10 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     private final double BOUND_VAL = 45;
     private double deriv_l_bound = BOUND_VAL, deriv_u_bound = BOUND_VAL;
     private double integ_l_bound = 0, integ_u_bound = 0;
-    private Color[] colors = new Color[] {
+    private final Color[] colors = new Color[] {
             Color.BLUE, Color.RED, Color.ORANGE
     };
+
     public GraphingGUI(int width, int height) {
         initialize_components();
 
@@ -171,6 +171,16 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         approx_integral_btn.addActionListener(this);
         approx_integral_btn.setVisible(true);
 
+        area_label = new JLabel("Area: ");
+        area_label.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
+        area_label.setBounds(
+                approx_integral_btn.getX() + approx_integral_btn.getWidth() + 10, approx_integral_btn.getY(),
+                100, approx_integral_btn.getHeight()
+        );
+        area_label.setOpaque(true);
+        area_label.setBackground(new Color(0xFFFFFF));
+        area_label.setVisible(true);
+
         frame.add(func_field);
         frame.add(graph_btn);
         frame.add(clear_btn);
@@ -181,6 +191,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         frame.add(approx_integral_btn);
         frame.add(rect_w_slider);
         frame.add(show_deriv_box);
+        frame.add(area_label);
 
         limit_def_timer = new Timer(3, this);
         show_tangent = false;
@@ -274,23 +285,15 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             }
         }
 
-        g2d.setColor(new Color(0x5B5B5B));
+        g2d.setColor(new Color(0));
         g2d.setStroke(new BasicStroke(3));
 
-        System.out.print("GraphingGUI.paintComponent:");
-        System.out.println("curr_func = " + curr_func);
         if (!Objects.equals(curr_func, "")) {
             if (curr_mouse != null && show_tangent) {
                 //graph derivative
                 line_bt_points(curr_mouse.x, curr_mouse.x + 0.0001);
                 if (show_derivative) {
                     //plot a circle on the deriv graph
-//                    String expr = curr_func.split("=")[1].trim()
-//                            .replaceAll("x", String.valueOf(revert_from_gridspace(curr_mouse.x, true)));
-//                    double y = eval(expr);
-//                    System.out.println("expr = " + expr);
-//                    System.out.println("y = " + y);
-//                    g2d.fillOval(curr_mouse.x - 5, (int) (cvt_to_gridspace(y, false) - 5), 10, 10);
                     double y = Double.parseDouble(slope_label.getText().split(":")[1]);
                     int rad = 10;
                     g2d.fillOval(curr_mouse.x - rad/2, (int) (cvt_to_gridspace(y, false) - rad/2), rad, rad);
@@ -319,18 +322,20 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         lb = cvt_to_gridspace(lb, true);
         ub = cvt_to_gridspace(ub, true);
 
+        double total_area = 0;
         g2d.setColor(new Color(0x9B4D47DC, true));
         String func = curr_func.split("=")[1].trim();
         for (double x = lb; x + w <= ub; x += w) {
             String expr = func.replaceAll("x", String.valueOf(revert_from_gridspace(x, true)));
-            double height = eval(expr); // rectangle goes from x-axis to function
-            System.out.println("height = " + height);
+            double height = Calculate.eval(expr); // rectangle goes from x-axis to function
 
             double offset = height * 20, factor = 1;
             if (height < 0) {
                 //below x-axis case
                 offset = 0;
-                factor = -1; //used to turn the height positive (can't have height <0)
+                //used to turn the height positive (can't have height <0)
+                //allows rectangles to be draw above and below x-axis
+                factor = -1;
             }
 
             Rectangle2D.Double rect = new Rectangle2D.Double(
@@ -339,7 +344,10 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             );
 
             g2d.fill(rect);
+
+            total_area += (rect.getWidth() / 20) * (rect.getHeight() / 20);
         }
+        area_label.setText(String.format("Area: %.2f", total_area));
     }
     public void line_bt_points(double x1, double x2) {
         if (curr_func == null || curr_func.trim().equals("")) {
@@ -350,22 +358,23 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 
         String func = curr_func.split("=")[1].trim();
         String expr = func.replaceAll("x", String.valueOf(x1));
-        double y1 = eval(expr);
+        double y1 = Calculate.eval(expr);
 
         expr = func.replaceAll("x", String.valueOf(x2));
-        double y2 = eval(expr);
+        double y2 = Calculate.eval(expr);
 
         double dx = x2 - x1, dy = y2 - y1;
         double m = dy/dx;
         String d_func = String.format("%f * (x - %f) + %f", m, x1, y1); // y - y1 = m (x - x1)
 
-        double a_x = x1 > x2 ? x2 - 3 : x1 - 3; // 3 less than point farthest left
-        double a_y = eval(d_func.replaceAll("x", String.valueOf(a_x)));
+        double dist = 1; //how far away the line should go from the point
+        double a_x = x1 > x2 ? x2 - dist : x1 - dist; // 3 less than point farthest left
+        double a_y = Calculate.eval(d_func.replaceAll("x", String.valueOf(a_x)));
         a_x = cvt_to_gridspace(a_x, true);
         a_y = cvt_to_gridspace(a_y, false);
 
-        double b_x = x1 > x2 ? x1 + 3 : x2 + 3; // 3 more than point farthest right
-        double b_y = eval(d_func.replaceAll("x", String.valueOf(b_x)));
+        double b_x = x1 > x2 ? x1 + dist : x2 + dist; // 3 more than point farthest right
+        double b_y = Calculate.eval(d_func.replaceAll("x", String.valueOf(b_x)));
         b_x = cvt_to_gridspace(b_x, true);
         b_y = cvt_to_gridspace(b_y, false);
 
@@ -398,7 +407,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 //            System.out.println(expr);
 
             try {
-                double y = eval(expr); // if this throws, just return
+                double y = Calculate.eval(expr); // if this throws, just return
                 double trans_x = cvt_to_gridspace(x, true);
                 double trans_y = cvt_to_gridspace(y, false);
 
@@ -474,7 +483,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         if (e.getSource() == clear_btn) {
             curr_func = "";
             func_field.setText("");
-            slope_label.setText("");
+            slope_label.setText("Slope: ");
 
             func_heads = new Node[] { null, null, null, null, null };
 
@@ -485,6 +494,8 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             curr_click = null;
 
             show_integral = false;
+            area_label.setText("Area: ");
+
             lb_field.setText("Lower Bound: ");
             ub_field.setText("Lower Bound: ");
             repaint();
@@ -526,6 +537,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             curr_func = func_field.getText();
             if (show_tangent) {
                 show_integral = false;
+                area_label.setText("Area: ");
             }
 
             slope_label.setText("Slope: ");
@@ -534,7 +546,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 
         if (e.getSource() == rect_w_slider) {
             rect_width = rect_w_slider.getValue();
-            if (rect_width == 0) rect_width = 0.5;
+            if (rect_width == 0) rect_width = 0.1;
             repaint();
         }
 
@@ -542,6 +554,8 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             show_derivative = show_deriv_box.isSelected();
             if (show_derivative) {
                 show_integral = false;
+                area_label.setText("Area: ");
+
                 curr_func = func_field.getText();
                 Node[] heads = get_points_from(curr_func, show_derivative);
                 func_heads[0] = heads[0];
@@ -553,97 +567,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             }
             repaint();
         }
-    }
-
-    public static double eval(final String str) {
-        return new Object() {
-            int pos = -1, ch;
-
-            void nextChar() {
-                ch = (++pos < str.length()) ? str.charAt(pos) : -1;
-            }
-
-            boolean eat(int charToEat) {
-                while (ch == ' ') nextChar();
-                if (ch == charToEat) {
-                    nextChar();
-                    return true;
-                }
-                return false;
-            }
-
-            double parse() {
-                nextChar();
-                double x = parseExpression();
-                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char)ch);
-                return x;
-            }
-
-            // Grammar:
-            // expression = term | expression `+` term | expression `-` term
-            // term = factor | term `*` factor | term `/` factor
-            // factor = `+` factor | `-` factor | `(` expression `)` | number
-            //        | functionName `(` expression `)` | functionName factor
-            //        | factor `^` factor
-
-            double parseExpression() {
-                double x = parseTerm();
-                for (;;) {
-                    if      (eat('+')) x += parseTerm(); // addition
-                    else if (eat('-')) x -= parseTerm(); // subtraction
-                    else return x;
-                }
-            }
-
-            double parseTerm() {
-                double x = parseFactor();
-                for (;;) {
-                    if      (eat('*')) x *= parseFactor(); // multiplication
-                    else if (eat('/')) x /= parseFactor(); // division
-                    else return x;
-                }
-            }
-
-            double parseFactor() {
-                if (eat('+')) return +parseFactor(); // unary plus
-                if (eat('-')) return -parseFactor(); // unary minus
-
-                double x;
-                int startPos = this.pos;
-                if (eat('(')) { // parentheses
-                    x = parseExpression();
-                    if (!eat(')')) throw new RuntimeException("Missing ')'");
-                } else if ((ch >= '0' && ch <= '9') || ch == '.') { // numbers
-                    while ((ch >= '0' && ch <= '9') || ch == '.') nextChar();
-                    x = Double.parseDouble(str.substring(startPos, this.pos));
-                } else if (ch >= 'a' && ch <= 'z') { // functions
-                    while (ch >= 'a' && ch <= 'z') nextChar();
-                    String func = str.substring(startPos, this.pos);
-                    if (eat('(')) {
-                        x = parseExpression();
-                        if (!eat(')')) throw new RuntimeException("Missing ')' after argument to " + func);
-                    } else {
-                        x = parseFactor();
-                    }
-                    if (func.equals("sqrt")) x = Math.sqrt(x);
-                    else if (func.equals("sin")) x = Math.sin(x);
-                    else if (func.equals("cos")) x = Math.cos(x);
-                    else if (func.equals("tan")) x = Math.tan(x);
-                    else if (func.equals("abs")) x = Math.abs(x);
-                    else if (func.equals("arcsin")) x = Math.asin(x);
-                    else if (func.equals("arccos")) x = Math.acos(x);
-                    else if (func.equals("arctan")) x = Math.atan(x);
-                    else if (func.equals("log")) x = Math.log(x);
-                    else throw new RuntimeException("Unknown function: " + func);
-                } else {
-                    throw new RuntimeException("Unexpected: " + (char)ch);
-                }
-
-                if (eat('^')) x = Math.pow(x, parseFactor()); // exponentiation
-
-                return x;
-            }
-        }.parse();
     }
 
     @Override
