@@ -2,11 +2,13 @@ package Graphing;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
-public class Label extends JLabel {
+public class Button extends JButton {
+
     public Dimension pref_size;
     private final JPanel parent;
-    public Label(String text, Color bg, int font_size, JPanel parent) {
+    public Button(String text, Color bg, int font_size, JPanel parent) {
         setText(text);
         setOpaque(true);
         setBackground(bg);
@@ -29,6 +31,7 @@ public class Label extends JLabel {
     }
 
     public void right_of(JComponent comp, int padding) {
+        System.out.println(comp.getBounds());
         setBounds(
                 comp.getX() + this.getWidth() + padding, //right edge plus padding
                 comp.getY() + (comp.getHeight()/2) - (this.getHeight()/2), //center vertically

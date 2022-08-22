@@ -6,7 +6,6 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
-import java.awt.image.BufferedImage;
 import java.util.Objects;
 
 public class GraphingGUI extends JPanel implements ActionListener, ChangeListener {
@@ -54,6 +53,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     }
 
     private void initialize_components() {
+        Dimension d;
         frame = new JFrame();
         frame.setContentPane(this);
         frame.getContentPane().setPreferredSize(new Dimension(width, height));
@@ -74,7 +74,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         graph_btn = new JButton();
         graph_btn.setText("Graph");
         graph_btn.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        Dimension d = graph_btn.getPreferredSize();
+        d = graph_btn.getPreferredSize();
         graph_btn.setBounds(
                 func_field.getX() + func_field.getWidth() + 5,
                 func_field.getY() + (func_field.getHeight()/2) - (d.height/2),
@@ -82,7 +82,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         );
         graph_btn.addActionListener(this);
         graph_btn.setVisible(true);
-
+//
         clear_btn = new JButton();
         clear_btn.setText("Clear");
         clear_btn.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
@@ -184,9 +184,9 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         area_label.setBackground(new Color(0xFFFFFF));
         area_label.setVisible(true);
 
-        diff_section = new Section(new Color(0xFFFFFF), 400, 300, 200, 100, "Differentiation");
-        integ_section = new Section(new Color(0xFFFFFF), 400, 410, 200, 100, "Integration");
-        transf_section = new Section(new Color(0xFFFFFF), 400, 520, 200, 100, "Transformations");
+//        diff_section = new Section(new Color(0xFFFFFF), 100, 300, 400, 200, "Differentiation");
+//        integ_section = new Section(new Color(0xFFFFFF), 505, 410, 400, 200, "Integration");
+//        transf_section = new Section(new Color(0xFFFFFF), 905, 520, 400, 200, "Transformations");
 
         frame.add(func_field);
         frame.add(graph_btn);
@@ -199,9 +199,9 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         frame.add(rect_w_slider);
         frame.add(show_deriv_box);
         frame.add(area_label);
-        frame.add(diff_section);
-        frame.add(integ_section);
-        frame.add(transf_section);
+//        frame.add(diff_section);
+//        frame.add(integ_section);
+//        frame.add(transf_section);
 
         limit_def_timer = new Timer(3, this);
         show_tangent = false;
@@ -220,7 +220,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         super.paintComponent(g);
         //Draw grid
         g2d = (Graphics2D) g;
-        g2d.setColor(new Color(0x7E4F4F4F, true));
+        g2d.setColor(new Color(0x73737373, true));
         g2d.setStroke(new BasicStroke(1));
 
         //horiz lines

@@ -6,10 +6,11 @@
 [x] make the code more modular such that you can graph multiple things at once
 [x] graph derivative when the mouse is clicked
 
-[ ] Make the Sections expandable and collapsable
-[ ] Design differentiation section
-[ ] Design integration section
-[ ] Design transformations section
+[x] To make designing easier: make an integral, derivative, and transformations class that extends JPanel. Then
+    style it and return it. This is a much better option than making some generic "Section" class.
+    [x] Design differentiation section
+    [ ] Design integration section
+    [ ] Design transformations section
 
 [ ] Make asymptotes work
 [ ] add a history of previously graphed stuff

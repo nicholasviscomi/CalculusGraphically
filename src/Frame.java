@@ -1,4 +1,5 @@
 import Graphing.GraphingGUI;
+import Graphing.Panels.Integration_Section;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,7 +13,7 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
     public int height = 828; // height of window bar is 28. Want the content pane to be 800
 
     public JFrame frame;
-    GraphingGUI graphing_gui;
+    GraphingGUI graphing_gui = null;
     public Frame() {
         setLayout(null);
         setFocusable(true);
@@ -28,9 +29,12 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
         frame.setLocationRelativeTo(null);
 
         graphing_gui = new GraphingGUI(width, height - 28);
-        frame.setContentPane(graphing_gui.get_frame().getContentPane());
+//        frame.setContentPane(graphing_gui.get_frame().getContentPane());
 
-//        frame = graphing_gui.get_frame();
+        Integration_Section is = new Integration_Section(graphing_gui, graphing_gui);
+        is.setLocation(100, 100);
+        frame.add(is);
+
         frame.addMouseMotionListener(this);
         frame.addMouseListener(this);
         frame.setVisible(true);
@@ -39,6 +43,7 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        g.fillRect(0, 0, width, height);
     }
 
     public static void main(String[] args) {
@@ -47,6 +52,8 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        if (graphing_gui == null)  return;
+
         graphing_gui.curr_click = e.getPoint();
         graphing_gui.repaint();
     }
@@ -61,11 +68,15 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
 
     @Override
     public void mouseEntered(MouseEvent e) {
+        if (graphing_gui == null)  return;
+
         graphing_gui.mouse_on_screen = true;
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
+        if (graphing_gui == null)  return;
+
         graphing_gui.mouse_on_screen = false;
     }
 
@@ -76,6 +87,8 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        if (graphing_gui == null)  return;
+
         graphing_gui.curr_mouse = e.getPoint();
         if (graphing_gui.show_tangent) {
             graphing_gui.repaint();
