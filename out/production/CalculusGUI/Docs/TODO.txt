@@ -6,9 +6,9 @@
 [x] make the code more modular such that you can graph multiple things at once
 [x] graph derivative when the mouse is clicked
 
-[ ] To make designing easier: make an integral, derivative, and transformations class that extends JPanel. Then
+[x] To make designing easier: make an integral, derivative, and transformations class that extends JPanel. Then
     style it and return it. This is a much better option than making some generic "Section" class.
-    [ ] Design differentiation section
+    [x] Design differentiation section
     [ ] Design integration section
     [ ] Design transformations section
 

@@ -1,23 +1,29 @@
 package Graphing.Panels;
 
+import Graphing.GraphingGUI;
+
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class Integration_Section extends JPanel {
+public class Integration_Section extends JPanel implements ActionListener, ChangeListener {
     private JLabel header,
             lb_label, ub_label, //label that says "lower bound" or "upper bound"
             rw_label // "rectangle width"
     ;
-    private JSpinner lower_bound, upper_bound;
+    public JSpinner lower_bound, upper_bound;
     private JSlider rect_w_slider;
     private JButton approx_integral_btn;
     int width = 450, height = 125;
-    public Integration_Section(ActionListener al, ChangeListener cl) {
+    GraphingGUI parent;
+    public Integration_Section(int x, int y, GraphingGUI parent) {
+        this.parent = parent;
+        setLocation(x, y);
         setSize(width, height);
         setLayout(null);
-        setOpaque(true);
         Dimension d;
 
         header = new JLabel("Integration");
@@ -66,7 +72,7 @@ public class Integration_Section extends JPanel {
                 lb_label.getX(), lb_label.getY() + lb_label.getHeight() + 20,
                 d.width, d.height
         );
-        rect_w_slider.addChangeListener(cl);
+        rect_w_slider.addChangeListener(this);
         rect_w_slider.setVisible(true);
 
         rw_label = new JLabel("Rectangle Width");
@@ -88,11 +94,39 @@ public class Integration_Section extends JPanel {
                 rect_w_slider.getY() + (rect_w_slider.getHeight()/2) - (d.height/2),
                 d.width, d.height
         );
-        approx_integral_btn.addActionListener(al);
+        approx_integral_btn.addActionListener(this);
         approx_integral_btn.setVisible(true);
 
         add(header); add(lb_label); add(ub_label); add(upper_bound); add(lower_bound);
         add(rect_w_slider); add(approx_integral_btn); add(rw_label);
         setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == approx_integral_btn) {
+            parent.integ_u_bound = ((double) upper_bound.getValue());
+            parent.integ_l_bound = ((double) lower_bound.getValue());
+
+            parent.show_integral = true;
+            parent.show_tangent = false;
+
+            parent.show_derivative = false;
+            parent.show_deriv_box.setSelected(false);
+            parent.func_heads[1] = null; //remove derivative
+
+            parent.show_tang_box.setSelected(false);
+            parent.curr_click = null; //ensures the limit definition of derivative box doesn't trigger
+            parent.repaint();
+        }
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        if (e.getSource() == rect_w_slider) {
+            parent.rect_width = rect_w_slider.getValue();
+            if (parent.rect_width == 0) parent.rect_width = 0.1;
+        }
+        parent.repaint();
     }
 }

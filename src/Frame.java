@@ -29,11 +29,11 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
         frame.setLocationRelativeTo(null);
 
         graphing_gui = new GraphingGUI(width, height - 28);
-//        frame.setContentPane(graphing_gui.get_frame().getContentPane());
+        frame.setContentPane(graphing_gui.get_frame().getContentPane());
 
-        Integration_Section is = new Integration_Section(graphing_gui, graphing_gui);
-        is.setLocation(100, 100);
-        frame.add(is);
+//        Integration_Section is = new Integration_Section(graphing_gui, graphing_gui);
+//        is.setLocation(100, 100);
+//        graphing_gui.add(is);
 
         frame.addMouseMotionListener(this);
         frame.addMouseListener(this);

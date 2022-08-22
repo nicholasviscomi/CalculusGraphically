@@ -1,5 +1,7 @@
 package Graphing;
 
+import Graphing.Panels.Integration_Section;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -12,7 +14,8 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     private JFrame frame;
     private JTextField func_field, lb_field, ub_field; // lb = lower bound, ub = upper bound
     private JButton graph_btn, clear_btn, approx_integral_btn;
-    private JCheckBox show_tang_box, show_deriv_box; //show tangent line
+    public JCheckBox show_tang_box;
+    public JCheckBox show_deriv_box; //show tangent line
     private JLabel slope_label, area_label;
     private JSlider rect_w_slider;
     private Graphics2D g2d;
@@ -31,28 +34,28 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     Stores the head to the linked list of each function/derivative
     Maximum of 5 functions allowed
      */
-    private Node[] func_heads = new Node[5];
+    public Node[] func_heads = new Node[5];
 
     // Timer that gradually decreases the distance between the upper
     // and lower bounds until they are very close together.
     private Timer limit_def_timer;
     private final double BOUND_VAL = 45;
     private double deriv_l_bound = BOUND_VAL, deriv_u_bound = BOUND_VAL;
-    private double integ_l_bound = 0, integ_u_bound = 0;
+    public double integ_l_bound = 0, integ_u_bound = 0;
     private final Color[] colors = new Color[] {
             Color.BLUE, Color.RED, Color.ORANGE
     };
 
-    private Section diff_section, integ_section, transf_section;
+    private Integration_Section i_section;
 
     public GraphingGUI(int width, int height) {
-        initialize_components();
+        initialize_components(width, height);
 
         this.width = width;
         this.height = height;
     }
 
-    private void initialize_components() {
+    private void initialize_components(int w, int h) {
         Dimension d;
         frame = new JFrame();
         frame.setContentPane(this);
@@ -67,8 +70,10 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         // the main frame will have the mouse motion listeners
 
         func_field = new JTextField("y = 10 * sin(0.5 * x)");
-        func_field.setBounds(30, 30, 300, 50);
         func_field.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
+        func_field.setBounds(
+                (w/2) - 150, 20, 300, 40
+        );
         func_field.setVisible(true);
 
         graph_btn = new JButton();
@@ -128,7 +133,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         show_deriv_box.setOpaque(true);
         show_deriv_box.setBackground(new Color(0xFFFFFF));
         show_deriv_box.setVisible(true);
-
         lb_field = new JTextField("Lower Bound: 0");
         lb_field.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
         d = lb_field.getPreferredSize();
@@ -145,7 +149,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
                 lb_field.getX() + lb_field.getWidth() + 5, lb_field.getY(),
                 120, d.height
         );
-        ub_field.setVisible(true);
+//        ub_field.setVisible(true);
 
         rect_w_slider = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
         rect_w_slider.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
@@ -183,25 +187,20 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         area_label.setOpaque(true);
         area_label.setBackground(new Color(0xFFFFFF));
         area_label.setVisible(true);
-
-//        diff_section = new Section(new Color(0xFFFFFF), 100, 300, 400, 200, "Differentiation");
-//        integ_section = new Section(new Color(0xFFFFFF), 505, 410, 400, 200, "Integration");
-//        transf_section = new Section(new Color(0xFFFFFF), 905, 520, 400, 200, "Transformations");
+        i_section = new Integration_Section(20, 20, this);
 
         frame.add(func_field);
         frame.add(graph_btn);
         frame.add(clear_btn);
-        frame.add(show_tang_box);
-        frame.add(slope_label);
-        frame.add(lb_field);
-        frame.add(ub_field);
-        frame.add(approx_integral_btn);
-        frame.add(rect_w_slider);
-        frame.add(show_deriv_box);
-        frame.add(area_label);
-//        frame.add(diff_section);
-//        frame.add(integ_section);
-//        frame.add(transf_section);
+//        frame.add(show_tang_box);
+//        frame.add(slope_label);
+//        frame.add(lb_field);
+//        frame.add(ub_field);
+//        frame.add(approx_integral_btn);
+//        frame.add(rect_w_slider);
+//        frame.add(area_label);
+//        frame.add(show_deriv_box);
+        frame.add(i_section);
 
         limit_def_timer = new Timer(3, this);
         show_tangent = false;
@@ -276,15 +275,15 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         g2d.drawLine(width/2,  0, width/2, height); //y-axis
         //----------------------------------------------------------------
 
-        Image integral_img = Toolkit.getDefaultToolkit().getImage("src/Assets/Integral.png");
-        g2d.setColor(new Color(0xFFFFFF));
-        g2d.fillRect(width/2 + 35, 25, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3 + 10);
-        g2d.drawImage(integral_img, width/2 + 40, 30, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3, this);
-
-        Image lim_def_img = Toolkit.getDefaultToolkit().getImage("src/Assets/limit_def_deriv.png");
-        g2d.setColor(new Color(0xFFFFFF));
-        g2d.fillRect(width/2 + 205, 25, lim_def_img.getWidth(this)/6, lim_def_img.getHeight(this)/6);
-        g2d.drawImage(lim_def_img, width/2 + 200, 30, lim_def_img.getWidth(this)/6, lim_def_img.getHeight(this)/6, this);
+//        Image integral_img = Toolkit.getDefaultToolkit().getImage("src/Assets/Integral.png");
+//        g2d.setColor(new Color(0xFFFFFF));
+//        g2d.fillRect(width/2 + 35, 25, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3 + 10);
+//        g2d.drawImage(integral_img, width/2 + 40, 30, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3, this);
+//
+//        Image lim_def_img = Toolkit.getDefaultToolkit().getImage("src/Assets/limit_def_deriv.png");
+//        g2d.setColor(new Color(0xFFFFFF));
+//        g2d.fillRect(width/2 + 205, 25, lim_def_img.getWidth(this)/6, lim_def_img.getHeight(this)/6);
+//        g2d.drawImage(lim_def_img, width/2 + 200, 30, lim_def_img.getWidth(this)/6, lim_def_img.getHeight(this)/6, this);
 
         //draw the functions
         for (int i = 0; i < func_heads.length; i++) {
@@ -367,7 +366,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 
             total_area += (rect.getWidth() / 20) * (rect.getHeight() / 20);
         }
-        area_label.setText(String.format("Area: %.2f", total_area));
+//        area_label.setText(String.format("Area: %.2f", total_area));
     }
     public void line_bt_points(double x1, double x2) {
         if (curr_func == null || curr_func.trim().equals("")) {
@@ -525,6 +524,9 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             integ_l_bound = Double.parseDouble(lb_field.getText().split(":")[1].trim());
             integ_u_bound = Double.parseDouble(ub_field.getText().split(":")[1].trim());
 
+            integ_l_bound = (double) i_section.lower_bound.getValue();
+            integ_u_bound = (double) i_section.upper_bound.getValue();
+
             show_integral = true;
             show_tangent = false;
 
@@ -563,13 +565,11 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             slope_label.setText("Slope: ");
             repaint();
         }
-
-        if (e.getSource() == rect_w_slider) {
-            rect_width = rect_w_slider.getValue();
-            if (rect_width == 0) rect_width = 0.1;
-            repaint();
-        }
-
+//        if (e.getSource() == rect_w_slider) {
+//            rect_width = rect_w_slider.getValue();
+//            if (rect_width == 0) rect_width = 0.1;
+//            repaint();
+//        }
         if (e.getSource() == show_deriv_box) {
             show_derivative = show_deriv_box.isSelected();
             if (show_derivative) {
