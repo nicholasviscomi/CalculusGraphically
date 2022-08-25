@@ -1,5 +1,6 @@
 package Graphing;
 
+import Graphing.Panels.Differentiation_Section;
 import Graphing.Panels.Integration_Section;
 
 import javax.swing.*;
@@ -12,12 +13,11 @@ import java.util.Objects;
 
 public class GraphingGUI extends JPanel implements ActionListener, ChangeListener {
     private JFrame frame;
-    private JTextField func_field, lb_field, ub_field; // lb = lower bound, ub = upper bound
-    private JButton graph_btn, clear_btn, approx_integral_btn;
+    public JTextField func_field;
+    private JButton graph_btn, clear_btn;
     public JCheckBox show_tang_box;
     public JCheckBox show_deriv_box; //show tangent line
-    private JLabel slope_label, area_label;
-    private JSlider rect_w_slider;
+    private JLabel slope_label;
     private Graphics2D g2d;
     private final int width;
     private final int height;
@@ -29,7 +29,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 
     public double rect_width = 5;
 
-    public boolean show_integral = false, show_derivative = false;
+    public boolean show_integral = false, show_derivative = false, show_limdef = false;
     /*
     Stores the head to the linked list of each function/derivative
     Maximum of 5 functions allowed
@@ -47,6 +47,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     };
 
     private Integration_Section i_section;
+    private Differentiation_Section d_section;
 
     public GraphingGUI(int width, int height) {
         initialize_components(width, height);
@@ -81,8 +82,8 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         graph_btn.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
         d = graph_btn.getPreferredSize();
         graph_btn.setBounds(
-                func_field.getX() + func_field.getWidth() + 5,
-                func_field.getY() + (func_field.getHeight()/2) - (d.height/2),
+                (w/2) - d.width,
+                func_field.getY() + func_field.getHeight() + 5,
                 d.width, d.height
         );
         graph_btn.addActionListener(this);
@@ -93,8 +94,8 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         clear_btn.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
         d = clear_btn.getPreferredSize();
         clear_btn.setBounds(
-                graph_btn.getX() + graph_btn.getWidth() + 5,
-                func_field.getY() + (func_field.getHeight()/2) - (d.height/2),
+                graph_btn.getX() + graph_btn.getWidth(),
+                graph_btn.getY() + (graph_btn.getHeight()/2) - (d.height/2),
                 d.width, d.height
         );
         clear_btn.addActionListener(this);
@@ -133,74 +134,18 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         show_deriv_box.setOpaque(true);
         show_deriv_box.setBackground(new Color(0xFFFFFF));
         show_deriv_box.setVisible(true);
-        lb_field = new JTextField("Lower Bound: 0");
-        lb_field.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        d = lb_field.getPreferredSize();
-        lb_field.setBounds(
-                func_field.getX(), show_tang_box.getY() + show_tang_box.getHeight() + 5,
-                120, d.height
-        );
-        lb_field.setVisible(true);
 
-        ub_field = new JTextField("Upper Bound: 6.28");
-        ub_field.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        d = lb_field.getPreferredSize();
-        ub_field.setBounds(
-                lb_field.getX() + lb_field.getWidth() + 5, lb_field.getY(),
-                120, d.height
-        );
-//        ub_field.setVisible(true);
-
-        rect_w_slider = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
-        rect_w_slider.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        rect_w_slider.setMinorTickSpacing(1);
-        rect_w_slider.setMajorTickSpacing(5);
-        rect_w_slider.setPaintLabels(true);
-        rect_w_slider.setPaintTicks(true);
-        rect_w_slider.setOpaque(true);
-        rect_w_slider.setBackground(new Color(0xFFFFFF));
-        d = rect_w_slider.getPreferredSize();
-        rect_w_slider.setBounds(
-                lb_field.getX(), lb_field.getY() + lb_field.getHeight() + 5,
-                (ub_field.getX() + ub_field.getWidth()) - lb_field.getX(), d.height
-        );
-        rect_w_slider.addChangeListener(this);
-        rect_w_slider.setVisible(true);
-
-        approx_integral_btn = new JButton();
-        approx_integral_btn.setText("Approximate Integral");
-        approx_integral_btn.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        d = approx_integral_btn.getPreferredSize();
-        approx_integral_btn.setBounds(
-                ub_field.getX() + ub_field.getWidth() + 5,
-                ub_field.getY(), d.width, ub_field.getHeight()
-        );
-        approx_integral_btn.addActionListener(this);
-        approx_integral_btn.setVisible(true);
-
-        area_label = new JLabel("Area: ");
-        area_label.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        area_label.setBounds(
-                approx_integral_btn.getX() + approx_integral_btn.getWidth() + 10, approx_integral_btn.getY(),
-                100, approx_integral_btn.getHeight()
-        );
-        area_label.setOpaque(true);
-        area_label.setBackground(new Color(0xFFFFFF));
-        area_label.setVisible(true);
-        i_section = new Integration_Section(20, 20, this);
+        d_section = new Differentiation_Section(20, 20, this);
+        i_section = new Integration_Section(w - 450 - 20, 20, this);
 
         frame.add(func_field);
         frame.add(graph_btn);
         frame.add(clear_btn);
 //        frame.add(show_tang_box);
 //        frame.add(slope_label);
-//        frame.add(lb_field);
-//        frame.add(ub_field);
-//        frame.add(approx_integral_btn);
-//        frame.add(rect_w_slider);
-//        frame.add(area_label);
 //        frame.add(show_deriv_box);
         frame.add(i_section);
+        frame.add(d_section);
 
         limit_def_timer = new Timer(3, this);
         show_tangent = false;
@@ -279,11 +224,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 //        g2d.setColor(new Color(0xFFFFFF));
 //        g2d.fillRect(width/2 + 35, 25, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3 + 10);
 //        g2d.drawImage(integral_img, width/2 + 40, 30, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3, this);
-//
-//        Image lim_def_img = Toolkit.getDefaultToolkit().getImage("src/Assets/limit_def_deriv.png");
-//        g2d.setColor(new Color(0xFFFFFF));
-//        g2d.fillRect(width/2 + 205, 25, lim_def_img.getWidth(this)/6, lim_def_img.getHeight(this)/6);
-//        g2d.drawImage(lim_def_img, width/2 + 200, 30, lim_def_img.getWidth(this)/6, lim_def_img.getHeight(this)/6, this);
 
         //draw the functions
         for (int i = 0; i < func_heads.length; i++) {
@@ -313,11 +253,11 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
                 line_bt_points(curr_mouse.x, curr_mouse.x + 0.0001);
                 if (show_derivative) {
                     //plot a circle on the deriv graph
-                    double y = Double.parseDouble(slope_label.getText().split(":")[1]);
+                    double y = Double.parseDouble(d_section.slope.getText().split(":")[1]);
                     int rad = 10;
                     g2d.fillOval(curr_mouse.x - rad/2, (int) (cvt_to_gridspace(y, false) - rad/2), rad, rad);
                 }
-            } else if (curr_click != null && !show_tangent) {
+            } else if (curr_click != null && show_limdef) {
                 //animate limit definition of derivative
                 if (!limit_def_timer.isRunning()) {
                     limit_def_timer.start();
@@ -406,7 +346,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         g2d.fillOval((int) (x2 - 5), (int) (y2 - 5), 10, 10);
 
         if (!Double.isNaN(m)) {
-            slope_label.setText(String.format("Slope: %.1f", m));
+            d_section.slope.setText(String.format("Slope: %.1f", m));
         }
     }
 
@@ -513,29 +453,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             curr_click = null;
 
             show_integral = false;
-            area_label.setText("Area: ");
-
-            lb_field.setText("Lower Bound: ");
-            ub_field.setText("Lower Bound: ");
-            repaint();
-        }
-
-        if (e.getSource() == approx_integral_btn) {
-            integ_l_bound = Double.parseDouble(lb_field.getText().split(":")[1].trim());
-            integ_u_bound = Double.parseDouble(ub_field.getText().split(":")[1].trim());
-
-            integ_l_bound = (double) i_section.lower_bound.getValue();
-            integ_u_bound = (double) i_section.upper_bound.getValue();
-
-            show_integral = true;
-            show_tangent = false;
-
-            show_derivative = false;
-            show_deriv_box.setSelected(false);
-            func_heads[1] = null; //remove derivative
-
-            show_tang_box.setSelected(false);
-            curr_click = null; //ensures the limit definition of derivative box doesn't trigger
             repaint();
         }
 
@@ -559,7 +476,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             curr_func = func_field.getText();
             if (show_tangent) {
                 show_integral = false;
-                area_label.setText("Area: ");
             }
 
             slope_label.setText("Slope: ");
@@ -574,14 +490,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             show_derivative = show_deriv_box.isSelected();
             if (show_derivative) {
                 show_integral = false;
-                area_label.setText("Area: ");
-
-                curr_func = func_field.getText();
-                Node[] heads = get_points_from(curr_func, show_derivative);
-                func_heads[0] = heads[0];
-                if (show_derivative && heads.length > 1) {
-                    func_heads[1] = heads[1];
-                }
             } else {
                 func_heads[1] = null;
             }

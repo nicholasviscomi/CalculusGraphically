@@ -17,7 +17,7 @@ public class Integration_Section extends JPanel implements ActionListener, Chang
     public JSpinner lower_bound, upper_bound;
     private JSlider rect_w_slider;
     private JButton approx_integral_btn;
-    int width = 450, height = 125;
+    int width = 440, height = 120;
     GraphingGUI parent;
     public Integration_Section(int x, int y, GraphingGUI parent) {
         this.parent = parent;
