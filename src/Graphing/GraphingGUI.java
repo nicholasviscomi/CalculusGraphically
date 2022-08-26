@@ -45,18 +45,19 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     private final Color[] colors = new Color[] {
             Color.BLUE, Color.RED, Color.ORANGE
     };
+    public double limdef_dist = 5;
 
     private Integration_Section i_section;
     private Differentiation_Section d_section;
 
     public GraphingGUI(int width, int height) {
-        initialize_components(width, height);
+        initialize_components(width);
 
         this.width = width;
         this.height = height;
     }
 
-    private void initialize_components(int w, int h) {
+    private void initialize_components(int w) {
         Dimension d;
         frame = new JFrame();
         frame.setContentPane(this);
@@ -259,10 +260,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
                 }
             } else if (curr_click != null && show_limdef) {
                 //animate limit definition of derivative
-                if (!limit_def_timer.isRunning()) {
-                    limit_def_timer.start();
-                }
-                line_bt_points(curr_click.x, curr_click.x + deriv_u_bound);
+                line_bt_points(curr_click.x, curr_click.x + limdef_dist);
             } else if (show_integral) {
                 approx_integral(integ_l_bound, integ_u_bound, rect_width);
             }
@@ -281,7 +279,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         lb = cvt_to_gridspace(lb, true);
         ub = cvt_to_gridspace(ub, true);
 
-        double total_area = 0;
         g2d.setColor(new Color(0x9B4D47DC, true));
         String func = curr_func.split("=")[1].trim();
         for (double x = lb; x + w <= ub; x += w) {
@@ -303,8 +300,6 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
             );
 
             g2d.fill(rect);
-
-            total_area += (rect.getWidth() / 20) * (rect.getHeight() / 20);
         }
 //        area_label.setText(String.format("Area: %.2f", total_area));
     }
@@ -457,15 +452,13 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         }
 
         if (e.getSource() == limit_def_timer) {
-            if (deriv_u_bound > 0.1 && deriv_l_bound > 0.1) {
-                deriv_u_bound -= 0.1;
-                deriv_l_bound -= 0.1;
-                repaint();
-            } else {
-                limit_def_timer.stop();
-                deriv_u_bound = BOUND_VAL;
-                deriv_l_bound = BOUND_VAL;
-            }
+//            if (deriv_u_bound > 0.1 && deriv_l_bound > 0.1) {
+//                deriv_u_bound -= 0.1;
+//                repaint();
+//            } else {
+//                limit_def_timer.stop();
+//                deriv_u_bound = BOUND_VAL;
+//            }
         }
     }
 

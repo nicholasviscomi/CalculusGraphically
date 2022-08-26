@@ -67,9 +67,10 @@ public class Differentiation_Section extends JPanel implements ChangeListener {
         limdef_box.addChangeListener(this);
         limdef_box.setVisible(true);
 
-        limdef_dist = new JSlider(JSlider.HORIZONTAL, 0, 5, 2);
+        limdef_dist = new JSlider(JSlider.HORIZONTAL, 0, 40, 40);
         limdef_dist.setFont(new Font(Font.SERIF, Font.PLAIN, 12));
-        limdef_dist.setMajorTickSpacing(1);
+        limdef_dist.setMajorTickSpacing(10);
+        limdef_dist.setMinorTickSpacing(2);
         limdef_dist.setPaintLabels(true);
         limdef_dist.setPaintTicks(true);
         d = limdef_dist.getPreferredSize();
@@ -113,12 +114,28 @@ public class Differentiation_Section extends JPanel implements ChangeListener {
             repaint();
             revalidate();
 
+            if (val) {
+                show_tang_box.setSelected(false);
+                show_deriv_box.setSelected(false);
+            }
+
             parent.show_limdef = val;
             parent.repaint();
-        } else if (e.getSource() == show_tang_box) {
-            parent.show_tangent = ((JCheckBox) e.getSource()).isSelected();
+        }
+
+        if (e.getSource() == limdef_dist) {
+            System.out.println("limdef_dist = " + limdef_dist.getValue());
+            parent.limdef_dist = (limdef_dist.getValue() == 0 ? 0.001 : limdef_dist.getValue());
             parent.repaint();
-        } else if (e.getSource() == show_deriv_box) {
+        }
+
+        if (e.getSource() == show_tang_box) {
+            parent.show_tangent = ((JCheckBox) e.getSource()).isSelected();
+            if (show_tang_box.isSelected()) limdef_box.setSelected(false);
+            parent.repaint();
+        }
+
+        if (e.getSource() == show_deriv_box) {
             parent.show_derivative = ((JCheckBox) e.getSource()).isSelected();
             if (parent.show_derivative) {
                 parent.show_integral = false;
