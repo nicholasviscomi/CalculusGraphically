@@ -1,7 +1,6 @@
 package Graphing.Panels;
 
 import Graphing.GraphingGUI;
-import Graphing.Node;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -138,9 +137,8 @@ public class Differentiation_Section extends JPanel implements ChangeListener {
         if (e.getSource() == show_deriv_box) {
             parent.show_derivative = ((JCheckBox) e.getSource()).isSelected();
             if (parent.show_derivative) {
-                parent.show_integral = false;
-
-                parent.func_heads = parent.get_points_from(parent.func_field.getText(), parent.show_derivative);
+//                parent.show_integral = false;
+                parent.func_heads = parent.get_points_from(parent.func_field.getText(), parent.show_derivative, 0.1);
             } else {
                 parent.func_heads[1] = null;
             }

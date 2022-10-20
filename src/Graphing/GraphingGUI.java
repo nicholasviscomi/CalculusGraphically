@@ -2,26 +2,22 @@ package Graphing;
 
 import Graphing.Panels.Differentiation_Section;
 import Graphing.Panels.Integration_Section;
+import Graphing.Panels.Maclaurin_Section;
+import Graphing.Panels.Transformation_Section;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.Objects;
 
-public class GraphingGUI extends JPanel implements ActionListener, ChangeListener {
+public class GraphingGUI extends JPanel implements ActionListener {
     private JFrame frame;
     public JTextField func_field;
     private JButton graph_btn, clear_btn;
-    public JCheckBox show_tang_box;
-    public JCheckBox show_deriv_box; //show tangent line
-    private JLabel slope_label;
     private Graphics2D g2d;
-    private final int width;
-    private final int height;
-    private String curr_func = null;
+    public final int width, height;
+    public String curr_func = null;
 
     //these will be changed by Frame.java during mouse events
     public Point curr_click = null, curr_mouse = null;
@@ -34,30 +30,26 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     Stores the head to the linked list of each function/derivative
     Maximum of 5 functions allowed
      */
-    public Node[] func_heads = new Node[5];
-
-    // Timer that gradually decreases the distance between the upper
-    // and lower bounds until they are very close together.
-    private Timer limit_def_timer;
-    private final double BOUND_VAL = 45;
-    private double deriv_l_bound = BOUND_VAL, deriv_u_bound = BOUND_VAL;
+    public Node[] func_heads = new Node[10];
     public double integ_l_bound = 0, integ_u_bound = 0;
     private final Color[] colors = new Color[] {
-            Color.BLUE, Color.RED, Color.ORANGE
+            Color.BLUE, Color.RED, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA
     };
-    public double limdef_dist = 5;
+    public double limdef_dist = 40;
 
-    private Integration_Section i_section;
-    private Differentiation_Section d_section;
+    public Integration_Section i_section;
+    public Differentiation_Section d_section;
+    public Transformation_Section t_section;
+    public Maclaurin_Section m_section;
 
     public GraphingGUI(int width, int height) {
-        initialize_components(width);
+        initialize_components(width, height);
 
         this.width = width;
         this.height = height;
     }
 
-    private void initialize_components(int w) {
+    private void initialize_components(int w, int h) {
         Dimension d;
         frame = new JFrame();
         frame.setContentPane(this);
@@ -71,7 +63,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         frame.setLayout(null);
         // the main frame will have the mouse motion listeners
 
-        func_field = new JTextField("y = 10 * sin(0.5 * x)");
+        func_field = new JTextField("y = 10 * sin(x / 2)");
         func_field.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
         func_field.setBounds(
                 (w/2) - 150, 20, 300, 40
@@ -102,57 +94,23 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         clear_btn.addActionListener(this);
         clear_btn.setVisible(true);
 
-        show_tang_box = new JCheckBox("Show Tangent");
-        show_tang_box.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        d = show_tang_box.getPreferredSize();
-        show_tang_box.setBounds(
-                func_field.getX(), func_field.getY() + func_field.getHeight(),
-                d.width, d.height
-        );
-        show_tang_box.setOpaque(true);
-        show_tang_box.setBackground(new Color(0xFFFFFF));
-        show_tang_box.addChangeListener(this);
-        show_tang_box.setVisible(true);
-
-        slope_label = new JLabel("Slope: ");
-        slope_label.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        slope_label.setBounds(
-                show_tang_box.getX() + show_tang_box.getWidth() + 10, show_tang_box.getY(),
-                100, show_tang_box.getHeight()
-        );
-        slope_label.setOpaque(true);
-        slope_label.setBackground(new Color(0xFFFFFF));
-        slope_label.setVisible(true);
-
-        show_deriv_box = new JCheckBox("Show Derivative");
-        show_deriv_box.setFont(new Font(Font.SERIF, Font.PLAIN, 15));
-        d = show_deriv_box.getPreferredSize();
-        show_deriv_box.setBounds(
-                slope_label.getX() + slope_label.getWidth() + 5, slope_label.getY(),
-                d.width, slope_label.getHeight()
-        );
-        show_deriv_box.addChangeListener(this);
-        show_deriv_box.setOpaque(true);
-        show_deriv_box.setBackground(new Color(0xFFFFFF));
-        show_deriv_box.setVisible(true);
-
         d_section = new Differentiation_Section(20, 20, this);
-        i_section = new Integration_Section(w - 450 - 20, 20, this);
+        i_section = new Integration_Section(w - 440 - 20, 20, this);
+        t_section = new Transformation_Section(20, h - 120 - 20, this);
+        m_section = new Maclaurin_Section(20, h - 140, this);
 
         frame.add(func_field);
         frame.add(graph_btn);
         frame.add(clear_btn);
-//        frame.add(show_tang_box);
-//        frame.add(slope_label);
-//        frame.add(show_deriv_box);
         frame.add(i_section);
         frame.add(d_section);
+        frame.add(m_section);
+//        frame.add(t_section);
 
-        limit_def_timer = new Timer(3, this);
         show_tangent = false;
 
         func_heads = new Node[] {
-                null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null
         };
     }
 
@@ -227,11 +185,16 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
 //        g2d.drawImage(integral_img, width/2 + 40, 30, integral_img.getWidth(this)/3, integral_img.getHeight(this)/3, this);
 
         //draw the functions
+        int col_i = 0;
         for (int i = 0; i < func_heads.length; i++) {
             Node curr = func_heads[i];
-            Color color = colors[i];
 
-            if (curr == null) { break; }
+            if (col_i > (colors.length - 1)) {
+                col_i = 0;
+            }
+            Color color = colors[col_i++];
+
+            if (curr == null) { continue; }
             Node prev_node = curr;
             curr = curr.next;
 
@@ -345,14 +308,15 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         }
     }
 
-    public Node[] get_points_from(String raw_func, boolean get_deriv) {
+    public Node[] get_points_from(String raw_func, boolean get_deriv, double step_size) {
         if (raw_func == null || raw_func.trim().equals("")) { return null; }
         String func = raw_func.split("=")[1].trim();
 //        System.out.println(func);
 
+        boolean point_entered_screen = false; //use to break from the loop once the points are off the screen
         Node prev_func_node = null, prev_deriv_node = null;;
         Node func_head = null, deriv_head = null;
-        for (double x = (double) -width/2; x < (double) width/2; x += 0.1) {
+        for (double x = (double) -width/2; x < (double) width/2; x += step_size) {
             String string_x = String.valueOf(x);
             if (String.valueOf(x).contains("E")) {
                 string_x = "0";
@@ -365,9 +329,19 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
                 double trans_x = cvt_to_gridspace(x, true);
                 double trans_y = cvt_to_gridspace(y, false);
 
-                if (trans_x > width || trans_y > height) {
-                    continue;
+                if (!point_entered_screen) {
+                    // check whether a point was drawn that is visible on the screen
+                    if (trans_x > 0 && trans_x < width && trans_y > 0 && trans_y < height) {
+                        point_entered_screen = true;
+                    }
                 }
+
+                if (point_entered_screen) {
+                    if (trans_x > width || trans_y > height) {
+                        break;
+                    }
+                }
+
 
                 Node curr_func_node = new Node(null, trans_x, trans_y); //current node of the original function
                 if (prev_func_node != null) {
@@ -397,11 +371,13 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
                 return null;
             }
         }
-
-        return new Node[] { func_head, deriv_head };
+        if (get_deriv)
+            return new Node[] { func_head, deriv_head };
+        else
+            return new Node[] { func_head };
     }
 
-    private double cvt_to_gridspace(double val, boolean isX) {
+    public double cvt_to_gridspace(double val, boolean isX) {
         // Convert from computer
         // to human coordinates
         // Multiply by 20 so it fits on 20x20 grid boxes
@@ -426,7 +402,7 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == graph_btn) {
             curr_func = func_field.getText();
-            Node[] heads = get_points_from(curr_func, show_derivative);
+            Node[] heads = get_points_from(curr_func, show_derivative, 0.1);
             func_heads[0] = heads[0];
             if (show_derivative && heads.length > 1) {
                 func_heads[1] = heads[1];
@@ -437,55 +413,15 @@ public class GraphingGUI extends JPanel implements ActionListener, ChangeListene
         if (e.getSource() == clear_btn) {
             curr_func = "";
             func_field.setText("");
-            slope_label.setText("Slope: ");
+            d_section.slope.setText("Slope: ");
 
             func_heads = new Node[] { null, null, null, null, null };
 
             show_derivative = false;
-            show_deriv_box.setSelected(false);
-
-            show_tang_box.setSelected(false);
             curr_click = null;
 
             show_integral = false;
-            repaint();
-        }
-
-        if (e.getSource() == limit_def_timer) {
-//            if (deriv_u_bound > 0.1 && deriv_l_bound > 0.1) {
-//                deriv_u_bound -= 0.1;
-//                repaint();
-//            } else {
-//                limit_def_timer.stop();
-//                deriv_u_bound = BOUND_VAL;
-//            }
-        }
-    }
-
-    @Override
-    public void stateChanged(ChangeEvent e) {
-        if (e.getSource() == show_tang_box) {
-            show_tangent = show_tang_box.isSelected();
-            curr_func = func_field.getText();
-            if (show_tangent) {
-                show_integral = false;
-            }
-
-            slope_label.setText("Slope: ");
-            repaint();
-        }
-//        if (e.getSource() == rect_w_slider) {
-//            rect_width = rect_w_slider.getValue();
-//            if (rect_width == 0) rect_width = 0.1;
-//            repaint();
-//        }
-        if (e.getSource() == show_deriv_box) {
-            show_derivative = show_deriv_box.isSelected();
-            if (show_derivative) {
-                show_integral = false;
-            } else {
-                func_heads[1] = null;
-            }
+            m_section.m_index = 1;
             repaint();
         }
     }

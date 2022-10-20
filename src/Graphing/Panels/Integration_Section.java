@@ -111,11 +111,11 @@ public class Integration_Section extends JPanel implements ActionListener, Chang
             parent.show_integral = true;
             parent.show_tangent = false;
 
-            parent.show_derivative = false;
-            parent.show_deriv_box.setSelected(false);
-            parent.func_heads[1] = null; //remove derivative
+//            parent.show_derivative = false;
+//            parent.d_section.show_deriv_box.setSelected(false);
+//            parent.func_heads[1] = null; //remove derivative
 
-            parent.show_tang_box.setSelected(false);
+            parent.d_section.show_tang_box.setSelected(false);
             parent.curr_click = null; //ensures the limit definition of derivative box doesn't trigger
             parent.repaint();
         }

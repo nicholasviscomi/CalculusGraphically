@@ -1,5 +1,4 @@
 import Graphing.GraphingGUI;
-import Graphing.Panels.Integration_Section;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +24,7 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
         frame.setSize(new Dimension(width, height));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
-        frame.setTitle("Calculus Graphically");
+        frame.setTitle("Visiocalc");
         frame.setLocationRelativeTo(null);
 
         graphing_gui = new GraphingGUI(width, height - 28);
