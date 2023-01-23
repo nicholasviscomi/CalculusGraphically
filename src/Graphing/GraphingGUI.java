@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class GraphingGUI extends JPanel implements ActionListener {
@@ -30,7 +31,7 @@ public class GraphingGUI extends JPanel implements ActionListener {
     Stores the head to the linked list of each function/derivative
     Maximum of 5 functions allowed
      */
-    public Node[] func_heads = new Node[10];
+    public Node[] func_heads = new Node[20];
     public double integ_l_bound = 0, integ_u_bound = 0;
     private final Color[] colors = new Color[] {
             Color.BLUE, Color.RED, Color.ORANGE, Color.GREEN, Color.CYAN, Color.MAGENTA
@@ -63,7 +64,7 @@ public class GraphingGUI extends JPanel implements ActionListener {
         frame.setLayout(null);
         // the main frame will have the mouse motion listeners
 
-        func_field = new JTextField("y = 10 * sin(x / 2)");
+        func_field = new JTextField("y = (2 * sin(x / 2) + 2) ^ 2");
         func_field.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
         func_field.setBounds(
                 (w/2) - 150, 20, 300, 40
@@ -412,10 +413,13 @@ public class GraphingGUI extends JPanel implements ActionListener {
 
         if (e.getSource() == clear_btn) {
             curr_func = "";
-            func_field.setText("");
+            if (func_heads[0] == null) {
+                // if there is no function drawn, clear the text field
+                func_field.setText("");
+            }
             d_section.slope.setText("Slope: ");
 
-            func_heads = new Node[] { null, null, null, null, null };
+            Arrays.fill(func_heads, null);
 
             show_derivative = false;
             curr_click = null;

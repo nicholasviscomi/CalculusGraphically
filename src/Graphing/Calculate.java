@@ -72,15 +72,15 @@ public class Calculate {
                     } else {
                         x = parseFactor();
                     }
-                    if (func.equals("sqrt")) x = Math.sqrt(x);
-                    else if (func.equals("sin")) x = Math.sin(x);
+//                    if (func.equals("sqrt")) x = Math.sqrt(x);
+                    if (func.equals("sin")) x = Math.sin(x);
                     else if (func.equals("cos")) x = Math.cos(x);
-                    else if (func.equals("tan")) x = Math.tan(x);
+//                    else if (func.equals("tan")) x = Math.tan(x);
                     else if (func.equals("abs")) x = Math.abs(x);
-                    else if (func.equals("arcsin")) x = Math.asin(x);
-                    else if (func.equals("arccos")) x = Math.acos(x);
-                    else if (func.equals("arctan")) x = Math.atan(x);
-                    else if (func.equals("log")) x = Math.log(x);
+//                    else if (func.equals("arcsin")) x = Math.asin(x);
+//                    else if (func.equals("arccos")) x = Math.acos(x);
+//                    else if (func.equals("arctan")) x = Math.atan(x);
+//                    else if (func.equals("log")) x = Math.log(x);
                     else throw new RuntimeException("Unknown function: " + func);
                 } else {
                     throw new RuntimeException("Unexpected: " + (char)ch);

@@ -72,12 +72,10 @@ public class Maclaurin_Section extends JPanel implements ActionListener {
         return res;
     }
 
-    public String get_maclaurin_function() {
+    public String get_maclaurin_function(double step_size) {
         int n_vals = 11; // number of values to be found at this specific level
-        double step_size = 0.001;
 
         //—————————————————————————————————————————————————————————————————————
-        //Get the derivative values at 0!
         ArrayList<Double> f_values = new ArrayList<>();
         String raw_func = parent.curr_func;
         if (raw_func == null || raw_func.trim().equals("")) { return null; }
@@ -147,7 +145,7 @@ public class Maclaurin_Section extends JPanel implements ActionListener {
         if (e.getSource() == next_term_btn) {
             m_index += 1;
 
-            String mac_func = get_maclaurin_function();
+            String mac_func = get_maclaurin_function(0.01);
             Node head = parent.get_points_from(mac_func, false, 0.01)[0];
             for (int i = 2; i < parent.func_heads.length; i++) {
                 if (parent.func_heads[i] == null) {

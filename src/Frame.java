@@ -12,7 +12,7 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
     public int height = 828; // height of window bar is 28. Want the content pane to be 800
 
     public JFrame frame;
-    GraphingGUI graphing_gui = null;
+    GraphingGUI graphing_gui;
     public Frame() {
         setLayout(null);
         setFocusable(true);
@@ -24,7 +24,7 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
         frame.setSize(new Dimension(width, height));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
-        frame.setTitle("Visiocalc");
+        frame.setTitle("Visio-Calc");
         frame.setLocationRelativeTo(null);
 
         graphing_gui = new GraphingGUI(width, height - 28);
