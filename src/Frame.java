@@ -1,3 +1,4 @@
+import Graphing.Calculate;
 import Graphing.GraphingGUI;
 
 import javax.swing.*;
@@ -33,6 +34,8 @@ public class Frame extends JPanel implements MouseListener, MouseMotionListener 
 //        Integration_Section is = new Integration_Section(graphing_gui, graphing_gui);
 //        is.setLocation(100, 100);
 //        graphing_gui.add(is);
+
+        System.out.println(Calculate.eval("((-20) ^ 0)"));
 
         frame.addMouseMotionListener(this);
         frame.addMouseListener(this);

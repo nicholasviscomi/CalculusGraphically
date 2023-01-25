@@ -16,7 +16,7 @@ public class Maclaurin_Section extends JPanel implements ActionListener {
     JLabel header;
     JButton next_term_btn;
 
-    public int m_index = 3; // start at -1 because we want the first term to be the 0th term
+    public int m_index = 1; // start at -1 because we want the first term to be the 0th term
     public Maclaurin_Section(int x, int y, GraphingGUI parent) {
         this.parent = parent;
         setLocation(x, y);
@@ -72,6 +72,9 @@ public class Maclaurin_Section extends JPanel implements ActionListener {
         return res;
     }
 
+    // when the app first boots up the maclaurin series works well but when I clear it and regraph
+    // the function the first 2 maclaurin's are just wrong
+
     public String get_maclaurin_function(double step_size) {
         int n_vals = 11; // number of values to be found at this specific level
 
@@ -94,7 +97,7 @@ public class Maclaurin_Section extends JPanel implements ActionListener {
         // construct the equation for the maclaurin series
         StringBuilder mac_equation = new StringBuilder("y = ");
         for (i = 0; i < m_index; i++) {
-            mac_equation.append(String.format("( %f * ( x ^ %d) / %d )", collapsed[i], i, factorial(i)));
+            mac_equation.append(String.format("( %f * ((x) ^ %d) / %d )", collapsed[i], i, factorial(i)));
             if ((i + 1) < m_index) {
                 mac_equation.append(" + ");
             }

@@ -64,7 +64,7 @@ public class GraphingGUI extends JPanel implements ActionListener {
         frame.setLayout(null);
         // the main frame will have the mouse motion listeners
 
-        func_field = new JTextField("y = (2 * sin(x / 2) + 2) ^ 2");
+        func_field = new JTextField("y = sin(x)");
         func_field.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
         func_field.setBounds(
                 (w/2) - 150, 20, 300, 40
